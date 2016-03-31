@@ -3,10 +3,26 @@
 echo -n "You are running Gene4x"
 echo -n "Multiplex reconstruction... "
 mkdir temp
-echo -n "Enter the path to the mRNA dataset file > "
+
+# Implementing ARACNe parallelized
+echo -n "Enter the path to the expresion.matrix.txt.bz2 > "
 read text1
-./ARACNE/aracne2 -i $text1 -o exp_net.adj -H ./ARACNE
-awk 'NR>=18' ./exp_net.adj > ./exp_net_1.txt
+awk 'NR>1{print $1}' $text1 > probes.txt
+python ./parallel-aracne/genera_condor.py \
+	--aracne_tgz ./parallel-aracne/ARACNE.src.tar.gz \
+	--expfile_bz2 $text1 \
+	--probes ./probes.txt \
+	--run_id exp_net \
+	--outdir ./exp_net \
+	--p 1
+cd ./exp_net
+condor_submit exp_net.condor
+condor_wait -echo exp_net.log
+tail -n 1 *adj > ../exp_net_1.txt
+cd ../
+rm -rf ./exp_net/
+
+
 perl ./code/conversion_network1.pl -g1 exp_net_1.txt -g2 exp_net.txt 
 rm exp_net.adj
 rm exp_net_1.txt

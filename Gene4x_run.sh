@@ -21,6 +21,7 @@ condor_wait -echo exp_net.log
 tail -n 1 *adj > ../exp_net_1.txt
 cd ../
 rm -rf ./exp_net/
+rm probes.txt
 
 
 perl ./code/conversion_network1.pl -g1 exp_net_1.txt -g2 exp_net.txt 
